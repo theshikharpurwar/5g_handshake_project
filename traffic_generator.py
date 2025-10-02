@@ -3,6 +3,7 @@ import time
 import socket
 import fcntl
 import struct
+from datetime import datetime
 from scapy.all import send, IP, TCP, UDP, Raw
 
 # --- Configuration ---
@@ -44,10 +45,15 @@ def generate_traffic():
             packet_count += 1
             
             # --- Pacing: Wait for the correct amount of time between packets ---
-            current_timestamp = row['Time']
+            try:
+                current_timestamp = datetime.strptime(str(row['Time']), '%Y-%m-%d %H:%M:%S.%f').timestamp()
+            except:
+                # Fallback to simpler format or skip timing
+                current_timestamp = time.time()
+            
             if last_timestamp is not None:
                 delay = current_timestamp - last_timestamp
-                if delay > 0:
+                if delay > 0 and delay < 10:  # Cap delay at 10 seconds for safety
                     time.sleep(delay)
             last_timestamp = current_timestamp
 

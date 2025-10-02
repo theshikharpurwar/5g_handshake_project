@@ -48,8 +48,44 @@ services:
       - ./ueransim-config:/config
     cap_add:
       - NET_ADMIN
+    devices:
+      - /dev/net/tun
     depends_on:
       - proxy
+
+  # The UERANSIM UE (user equipment)
+  ueransim-ue:
+    build:
+      context: .
+      dockerfile: ueransim.Dockerfile
+    container_name: ueransim-ue
+    networks:
+      - 5g_network
+    command: /UERANSIM/build/nr-ue -c /config/open5gs-ue.yaml
+    volumes:
+      - ./ueransim-config:/config
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - ueransim-gnb
+
+  # Open5GS WebUI for subscriber management
+  webui:
+    build:
+      context: .
+      dockerfile: webui.Dockerfile
+    container_name: open5gs-webui
+    networks:
+      - 5g_network
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - DB_URI=mongodb://open5gs-core:27017/open5gs
+      - NODE_ENV=development
+    depends_on:
+      - open5gs-core
 
 networks:
   5g_network:
