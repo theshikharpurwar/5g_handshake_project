@@ -1,0 +1,24 @@
+# Large dataset files (use Git LFS or download separately)
+datasets/*.csv
+datasets/*.zip
+
+# Docker volumes and build cache
+.docker/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

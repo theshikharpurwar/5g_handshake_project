@@ -1,0 +1,56 @@
+version: '3.3'
+
+services:
+  # The Open5GS 5G Core Network
+  open5gs-core:
+    build:
+      context: .
+      dockerfile: open5gs.Dockerfile
+    container_name: open5gs-core
+    networks:
+      - 5g_network
+    # Add this volumes section to mount your custom configs
+    volumes:
+      - ./open5gs-config:/etc/open5gs
+    cap_add:
+      - NET_ADMIN
+    # Add this 'devices' section to pass the TUN device into the container
+    devices:
+      - /dev/net/tun
+
+  # Our custom Python proxy
+  proxy:
+    build:
+      context: .
+      dockerfile: proxy.Dockerfile
+    container_name: proxy
+    # Add this environment section
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - 5g_network
+    ports:
+      - "127.0.0.1:38412:38412" # gNB connects here
+      - "127.0.0.1:9999:9999"  # Custom handshake client connects here
+    depends_on:
+      - open5gs-core
+
+  # The UERANSIM gNB (base station)
+  ueransim-gnb:
+    build:
+      context: .
+      dockerfile: ueransim.Dockerfile
+    container_name: ueransim-gnb
+    networks:
+      - 5g_network
+    command: /UERANSIM/build/nr-gnb -c /config/open5gs-gnb.yaml
+    volumes:
+      - ./ueransim-config:/config
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - proxy
+
+networks:
+  5g_network:
+    driver: bridge
