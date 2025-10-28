@@ -1,0 +1,26 @@
+mcc: '999'          # Mobile Country Code
+mnc: '70'           # Mobile Network Code
+nci: '0x000000011'  # NR Cell Identity (unique for gNB2)
+idLength: 32        # gNB ID length
+tac: 1              # Tracking Area Code
+
+linkIp: 172.18.0.6   # gNB's local IP for Radio Link Simulation
+ngapIp: 172.18.0.6   # gNB's local IP for N2 Interface
+gtpIp: 172.18.0.6    # gNB's local IP for N3 Interface (CRITICAL for GTP-U)
+
+# Connecting directly to Open5GS AMF
+amfConfigs:
+  - address: open5gs-core
+    port: 38412
+
+# List of supported S-NSSAIs by this gNB
+slices:
+  - sst: 1
+
+ignoreStreamIds: true
+
+# Neighbor gNBs for Xn handover
+neighbors:
+  - nci: '0x000000010'
+    gtpIp: 172.18.0.5  # Default IP for ueransim-gnb1
+

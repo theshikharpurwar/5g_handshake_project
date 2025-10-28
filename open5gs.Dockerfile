@@ -19,8 +19,8 @@ RUN add-apt-repository ppa:open5gs/latest && \
 # Install MongoDB and Open5GS
 RUN apt-get install -y mongodb-org
 
-# Install Open5GS
-RUN apt-get install -y open5gs
+# Install Open5GS and networking tools for ogstun interface
+RUN apt-get install -y open5gs iproute2 iptables
 
 # Copy a simple startup script
 COPY start-open5gs.sh /start-open5gs.sh

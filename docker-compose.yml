@@ -8,12 +8,14 @@ services:
       dockerfile: open5gs.Dockerfile
     container_name: open5gs-core
     networks:
-      - 5g_network
+      5g_network:
+        ipv4_address: 172.18.0.2
     # Add this volumes section to mount your custom configs
     volumes:
       - ./open5gs-config:/etc/open5gs
     cap_add:
       - NET_ADMIN
+      - SYS_NICE  # For SCTP
     # Add this 'devices' section to pass the TUN device into the container
     devices:
       - /dev/net/tun
@@ -35,14 +37,15 @@ services:
     depends_on:
       - open5gs-core
 
-  # The UERANSIM gNB (base station)
-  ueransim-gnb:
+  # The UERANSIM gNB #1 (base station)
+  ueransim-gnb1:
     build:
       context: .
       dockerfile: ueransim.Dockerfile
-    container_name: ueransim-gnb
+    container_name: ueransim-gnb1
     networks:
-      - 5g_network
+      5g_network:
+        ipv4_address: 172.18.0.5
     command: /UERANSIM/build/nr-gnb -c /config/open5gs-gnb.yaml
     volumes:
       - ./ueransim-config:/config
@@ -53,15 +56,16 @@ services:
     depends_on:
       - proxy
 
-  # The UERANSIM UE (user equipment)
-  ueransim-ue:
+  # The UERANSIM gNB #2 (base station)
+  ueransim-gnb2:
     build:
       context: .
       dockerfile: ueransim.Dockerfile
-    container_name: ueransim-ue
+    container_name: ueransim-gnb2
     networks:
-      - 5g_network
-    command: /UERANSIM/build/nr-ue -c /config/open5gs-ue.yaml
+      5g_network:
+        ipv4_address: 172.18.0.6
+    command: /UERANSIM/build/nr-gnb -c /config/open5gs-gnb2.yaml
     volumes:
       - ./ueransim-config:/config
     cap_add:
@@ -69,7 +73,111 @@ services:
     devices:
       - /dev/net/tun
     depends_on:
-      - ueransim-gnb
+      - proxy
+
+  # The UERANSIM UE #1 (user equipment)
+  ueransim-ue1:
+    build:
+      context: .
+      dockerfile: ueransim.Dockerfile
+    container_name: ueransim-ue1
+    networks:
+      - 5g_network
+    command: /start-ue.sh /config/open5gs-ue.yaml
+    volumes:
+      - ./ueransim-config:/config
+      - ./start-ue.sh:/start-ue.sh
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - ueransim-gnb1
+
+  # The UERANSIM UE #2 (user equipment)
+  ueransim-ue2:
+    build:
+      context: .
+      dockerfile: ueransim.Dockerfile
+    container_name: ueransim-ue2
+    networks:
+      - 5g_network
+    command: /start-ue.sh /config/open5gs-ue2.yaml
+    volumes:
+      - ./ueransim-config:/config
+      - ./start-ue.sh:/start-ue.sh
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - ueransim-gnb2
+
+  # ============================================
+  # NEW SERVICES: Multi-UE Single-gNB Scenario
+  # ============================================
+
+  # The UERANSIM gNB #3 (base station) - Shared by UE3 and UE4
+  ueransim-gnb3:
+    build:
+      context: .
+      dockerfile: ueransim.Dockerfile
+    container_name: ueransim-gnb3
+    networks:
+      5g_network:
+        ipv4_address: 172.18.0.7
+    command: /UERANSIM/build/nr-gnb -c /config/open5gs-gnb3.yaml
+    volumes:
+      - ./ueransim-config:/config
+      - ./datasets:/datasets
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - proxy
+
+  # The UERANSIM UE #3 (user equipment) - Connects to gNB3
+  ueransim-ue3:
+    build:
+      context: .
+      dockerfile: ueransim.Dockerfile
+    container_name: ueransim-ue3
+    networks:
+      - 5g_network
+    command: /start-ue.sh /config/open5gs-ue3.yaml
+    volumes:
+      - ./ueransim-config:/config
+      - ./datasets:/datasets
+      - ./traffic_generator.py:/traffic_generator.py
+      - ./start-ue.sh:/start-ue.sh
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - ueransim-gnb3
+
+  # The UERANSIM UE #4 (user equipment) - Connects to gNB3
+  ueransim-ue4:
+    build:
+      context: .
+      dockerfile: ueransim.Dockerfile
+    container_name: ueransim-ue4
+    networks:
+      - 5g_network
+    command: /start-ue.sh /config/open5gs-ue4.yaml
+    volumes:
+      - ./ueransim-config:/config
+      - ./datasets:/datasets
+      - ./traffic_generator.py:/traffic_generator.py
+      - ./start-ue.sh:/start-ue.sh
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    depends_on:
+      - ueransim-gnb3
 
   # Open5GS WebUI for subscriber management
   webui:
@@ -90,3 +198,6 @@ services:
 networks:
   5g_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16

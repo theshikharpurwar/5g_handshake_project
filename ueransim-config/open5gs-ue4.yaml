@@ -1,5 +1,5 @@
 # IMSI number of the UE. IMSI = [MCC|MNC|MSISDN] (In total 15 digits)
-supi: 'imsi-999700000000001'
+supi: 'imsi-999700000000004'
 # Mobile Country Code value of HPLMN
 mcc: '999'
 # Mobile Network Code value of HPLMN (2 or 3 digits)
@@ -14,13 +14,13 @@ opType: 'OPC'
 # Authentication Management Field (AMF) value
 amf: '8000'
 # IMEI number of the device. It is used if no SUPI is provided
-imei: '356938035643803'
+imei: '356938035643806'
 # IMEISV number of the device. It is used if no SUPI and IMEI is provided
-imeiSv: '4370816125816151'
+imeiSv: '4370816125816154'
 
-# List of gNB addresses (use Docker service name within compose network)
+# List of gNB addresses - CONNECTS TO gNB3 ONLY
 gnbSearchList:
-  - ueransim-gnb1
+  - ueransim-gnb3
 
 # UAC Access Identities Configuration
 uacAic:

@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     iproute2 \
     iputils-ping \
     iptables \
+    iperf3 \
+    net-tools \
     python3 \
     python3-pip \
     && pip3 install pandas numpy scapy \
