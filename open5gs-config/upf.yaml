@@ -12,17 +12,20 @@ upf:
   pfcp:
     server:
       - address: 127.0.0.7
-    client:
+      - dev: eth0
+        advertise: 172.18.0.2
 #      smf:     #  UPF PFCP Client try to associate SMF PFCP Server
 #        - address: 127.0.0.4
   gtpu:
     server:
-      - address: 127.0.0.7
+      - address: 172.18.0.2
   session:
     - subnet: 10.45.0.0/16
       gateway: 10.45.0.1
+      dev: ogstun
     - subnet: 2001:db8:cafe::/48
       gateway: 2001:db8:cafe::1
+      dev: ogstun
   metrics:
     server:
       - address: 127.0.0.7
